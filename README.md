@@ -73,3 +73,6 @@ SectionView<GroupModel, ItemModel>(
 ## Additional information
 
 If you want to custom your UI, please follow /example/lib/fullSectionList.dart
+
+## Todo
+- Provide tailer loading function
