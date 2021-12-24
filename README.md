@@ -15,7 +15,7 @@ Section view
 
 ## Features
 
-1. Show with select view
+1. Show with section view
 2. Alphabet support
 3. Refresh support
 
