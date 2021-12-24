@@ -20,10 +20,9 @@ Section view
 3. Refresh support
 
 ## Screen
+|:---:|:---:|:---:|
+| ![](screens/screen1.png) | ![](screens/screen2.gif) | ![](screens/screen3.gif) |
 
-![](screens/screen1.png)
-![](screens/screen2.gif)
-![](screens/screen3.gif)
 ## Usage
 
 Firstly, you can construct data like
