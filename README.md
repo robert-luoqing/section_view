@@ -20,7 +20,9 @@ Section view
 3. Refresh support
 
 ## Screen
-|:---:|:---:|:---:|
+
+|  | | |
+| :-----:| :----: | :----: |
 | ![](screens/screen1.png) | ![](screens/screen2.gif) | ![](screens/screen3.gif) |
 
 ## Usage
