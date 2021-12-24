@@ -75,4 +75,5 @@ SectionView<GroupModel, ItemModel>(
 If you want to custom your UI, please follow /example/lib/fullSectionList.dart
 
 ## Todo
-- Provide tailer loading function
+- Provide tailer load more functionality
+- Provide programaticly invoke onRefresh.
