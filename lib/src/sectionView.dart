@@ -139,7 +139,7 @@ class _SectionViewState<T, N> extends State<SectionView> {
       newPositions.sort((a, b) =>
           ((a.itemTrailingEdge - b.itemTrailingEdge) * 1000000).toInt());
 
-      if (newPositions.length > 0) {
+      if (newPositions.isNotEmpty) {
         var firstPosition = newPositions.first;
 
         int index = firstPosition.index;
@@ -263,8 +263,7 @@ class _SectionViewState<T, N> extends State<SectionView> {
   Widget build(BuildContext context) {
     var isBouncePhysic = _getPhysicsIsBounce();
 
-    Widget content = Container(
-        child: Stack(
+    Widget content = Stack(
       children: [
         _renderList(isBouncePhysic),
         ownWidget.enableSticky
@@ -292,7 +291,7 @@ class _SectionViewState<T, N> extends State<SectionView> {
           key: alphabetTipKey,
         )
       ],
-    ));
+    );
 
     if (!isBouncePhysic) {
       content = RefreshIndicator(onRefresh: _onRefresh, child: content);
@@ -303,7 +302,7 @@ class _SectionViewState<T, N> extends State<SectionView> {
 }
 
 SectionViewAlphabetBuilder<T> getDefaultAlphabetBuilder<T>(
-    String fetchAlphabet(T data)) {
+    String Function(T data) fetchAlphabet) {
   return (BuildContext context, T headerData, bool isCurrent, int headerIndex) {
     return isCurrent
         ? SizedBox(
@@ -316,45 +315,46 @@ SectionViewAlphabetBuilder<T> getDefaultAlphabetBuilder<T>(
                 child: Center(
                     child: Text(
                   fetchAlphabet(headerData),
-                  style: TextStyle(color: Colors.white, fontSize: 12),
+                  style: const TextStyle(color: Colors.white, fontSize: 12),
                 ))))
         : Text(
             fetchAlphabet(headerData),
-            style: TextStyle(color: Color(0xFF767676)),
+            style: const TextStyle(color: Color(0xFF767676)),
           );
   };
 }
 
-SectionViewTipBuilder<T> getDefaultTipBuilder<T>(String fetchAlphabet(T data)) {
+SectionViewTipBuilder<T> getDefaultTipBuilder<T>(
+    String Function(T data) fetchAlphabet) {
   return (BuildContext context, T headerData) {
     return Container(
         decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8), color: Color(0xCC000000)),
+            borderRadius: BorderRadius.circular(8),
+            color: const Color(0xCC000000)),
         width: 50,
         height: 50,
         child: Center(
           child: Text(
             fetchAlphabet(headerData),
-            style: TextStyle(color: Colors.white, fontSize: 24),
+            style: const TextStyle(color: Colors.white, fontSize: 24),
           ),
         ));
   };
 }
 
 SectionViewHeaderBuilder<T> getDefaultHeaderBuilder<T>(
-    String fetchAlphabet(T data),
+    String Function(T data) fetchAlphabet,
     {Color? bkColor,
     TextStyle? style}) {
   return (BuildContext context, T headerData, int headerIndex) {
     return Container(
-      color: bkColor != null ? bkColor : const Color(0xFFF3F4F5),
+      color: bkColor ?? const Color(0xFFF3F4F5),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
         child: Text(
           fetchAlphabet(headerData),
-          style: style != null
-              ? style
-              : const TextStyle(fontSize: 18, color: Color(0xFF767676)),
+          style:
+              style ?? const TextStyle(fontSize: 18, color: Color(0xFF767676)),
         ),
       ),
     );

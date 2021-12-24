@@ -67,7 +67,7 @@ abstract class SectionViewRefreshState extends State<SectionViewRefresh> {
     if (_position != null) {
       var pixels = _position?.pixels ?? 0.0;
       var minExtent = _position?.minScrollExtent ?? 0.0;
-      ScrollActivity? activity = _position?.activity;
+      ScrollActivity? activity = _position!.activity;
       var offset = minExtent - pixels;
       if (offset < 0) {
         offset = 0;

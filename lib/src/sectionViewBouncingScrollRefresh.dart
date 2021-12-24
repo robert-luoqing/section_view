@@ -78,7 +78,8 @@ class _SectionViewBouncingScrollRefreshState extends SectionViewRefreshState {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(width: 15, height: 15, child: CupertinoActivityIndicator()),
+          const SizedBox(
+              width: 15, height: 15, child: CupertinoActivityIndicator()),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10),
             child: Text(ownWidget.refreshingText),
