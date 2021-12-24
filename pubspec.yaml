@@ -1,6 +1,6 @@
 name: section_view
-description: Provide section list view control.
-version: 0.0.1
+description: Provide section list view which include alphabet and refresh, you can fully custom your control
+version: 1.0.1
 homepage: https://github.com/robert-luoqing/section_view
 
 environment:
