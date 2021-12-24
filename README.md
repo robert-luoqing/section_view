@@ -71,4 +71,4 @@ SectionView<GroupModel, ItemModel>(
 
 ## Additional information
 
-If you want to custom your UI, please follow /samples/lib/fullSectionList.dart
+If you want to custom your UI, please follow /example/lib/fullSectionList.dart
