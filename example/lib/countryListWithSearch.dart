@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 import 'package:section_view/section_view.dart';
 import 'package:section_view_sample/countryModel.dart';
@@ -17,6 +18,7 @@ class _CountryListWithSearchState extends State<CountryListWithSearch> {
   late TextEditingController _textController;
   List<CountryModel> _allCountries = [];
   List<AlphabetHeader<CountryModel>> _filterCountries = [];
+  final _refreshController = RefreshController(initialRefresh: false);
 
   _loadCountry() async {
     _allCountries = await loadCountriesFromAsset();
@@ -39,7 +41,8 @@ class _CountryListWithSearchState extends State<CountryListWithSearch> {
   }
 
   Future _onRefresh() async {
-    await Future.delayed(const Duration(seconds: 3));
+    await Future.delayed(const Duration(seconds: 2));
+    _refreshController.refreshCompleted();
   }
 
   @override
@@ -79,7 +82,15 @@ class _CountryListWithSearchState extends State<CountryListWithSearch> {
                 headerBuilder: getDefaultHeaderBuilder((d) => d.alphabet),
                 alphabetBuilder: getDefaultAlphabetBuilder((d) => d.alphabet),
                 tipBuilder: getDefaultTipBuilder((d) => d.alphabet),
-                onRefresh: _onRefresh,
+                refreshBuilder: (child) {
+                  return SmartRefresher(
+                      enablePullDown: true,
+                      enablePullUp: false,
+                      header: const WaterDropHeader(),
+                      controller: _refreshController,
+                      onRefresh: _onRefresh,
+                      child: child);
+                },
                 itemBuilder:
                     (context, itemData, itemIndex, headerData, headerIndex) {
                   return Padding(

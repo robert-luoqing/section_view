@@ -11,7 +11,40 @@ and the Flutter guide for
 [developing packages and plugins](https://flutter.dev/developing-packages). 
 -->
 
-Section view
+Notice: 2.0.0 has break changing
+- Break change, remove scrollable_positioned_list, add flutter_list_view
+- Refresh control will construct by user, like pull_to_refresh
+
+```dart
+SectionView<AlphabetHeader<CountryModel>, CountryModel>(
+  source: _filterCountries,
+  onFetchListData: (header) => header.items,
+  enableSticky: true,
+  alphabetAlign: Alignment.center,
+  alphabetInset: const EdgeInsets.all(4.0),
+  headerBuilder: getDefaultHeaderBuilder((d) => d.alphabet),
+  alphabetBuilder: getDefaultAlphabetBuilder((d) => d.alphabet),
+  tipBuilder: getDefaultTipBuilder((d) => d.alphabet),
+  refreshBuilder: (child) {
+    return SmartRefresher(
+        enablePullDown: true,
+        enablePullUp: false,
+        header: const WaterDropHeader(),
+        controller: _refreshController,
+        onRefresh: _onRefresh,
+        child: child);
+  },
+  itemBuilder:
+      (context, itemData, itemIndex, headerData, headerIndex) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 12.0),
+      child: ListTile(
+          title: Text(itemData.name),
+          trailing: Text(itemData.phoneCode)),
+    );
+  },
+),
+```
 
 ## Features
 

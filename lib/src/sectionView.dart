@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
-
+import 'package:flutter_list_view/flutter_list_view.dart';
 import 'sectionViewModel.dart';
-import 'sectionViewBouncingScrollRefresh.dart';
 import 'sectionViewAlphabetList.dart';
-import 'sectionViewSticky.dart';
 import 'sectionViewTip.dart';
 
 class SectionView<T, N> extends StatefulWidget {
@@ -13,7 +10,6 @@ class SectionView<T, N> extends StatefulWidget {
       required this.onFetchListData,
       required this.headerBuilder,
       required this.itemBuilder,
-      this.onRefresh,
       this.refreshBuilder,
       this.alphabetAlign = Alignment.center,
       this.alphabetInset = const EdgeInsets.all(4.0),
@@ -30,7 +26,6 @@ class SectionView<T, N> extends StatefulWidget {
   final SectionViewItemBuilder<T, N> itemBuilder;
   final SectionViewAlphabetBuilder<T>? alphabetBuilder;
   final SectionViewTipBuilder<T>? tipBuilder;
-  final SectionViewOnRefresh? onRefresh;
   final SectionViewRefreshBuilder? refreshBuilder;
   final bool enableSticky;
   final Alignment alphabetAlign;
@@ -42,9 +37,7 @@ class SectionView<T, N> extends StatefulWidget {
 }
 
 class _SectionViewState<T, N> extends State<SectionView> {
-  final ItemScrollController _itemScrollController = ItemScrollController();
-  final ItemPositionsListener _itemPositionsListener =
-      ItemPositionsListener.create();
+  final FlutterListViewController _controller = FlutterListViewController();
 
   /// listData will used to bind [ScrollablePositionedList]
   List<SectionViewData> _listData = [];
@@ -52,9 +45,6 @@ class _SectionViewState<T, N> extends State<SectionView> {
   /// Map header to index of [ScrollablePositionedList]
   List<AlphabetModel<T>> _headerToIndexMap = [];
 
-  bool _isRefreshing = false;
-
-  final stickyKey = GlobalKey<SectionViewStickyState>();
   final alphabetTipKey = GlobalKey<SectionViewTipState>();
   final sectionViewAlphabetListKey = GlobalKey<SectionViewAlphabetListState>();
 
@@ -62,31 +52,11 @@ class _SectionViewState<T, N> extends State<SectionView> {
     return widget as SectionView<T, N>;
   }
 
-  Future _onRefresh() async {
-    setState(() {
-      _isRefreshing = true;
-    });
-    try {
-      if (ownWidget.onRefresh != null) {
-        await ownWidget.onRefresh!();
-      }
-    } catch (e, s) {
-      // Do nothing
-    }
-    setState(() {
-      _isRefreshing = false;
-    });
-  }
-
   _buildList() {
     List<SectionViewData> _buildData = [];
     List<AlphabetModel<T>> _buildMap = [];
     int _headerIndex = 0;
     int _listIndex = 0;
-    // Add refresh control on it
-    _buildData.add(SectionViewData(
-        type: SectionViewDataType.refresh, headerIndex: -1, headerData: null));
-    _listIndex++;
 
     for (T _header in ownWidget.source) {
       _buildData.add(SectionViewData(
@@ -117,53 +87,36 @@ class _SectionViewState<T, N> extends State<SectionView> {
       _headerIndex++;
     }
 
-    // Add loading control on it
-    _buildData.add(SectionViewData(
-        type: SectionViewDataType.loading, headerIndex: -1, headerData: null));
-    _listIndex++;
-
     _listData = _buildData;
     _headerToIndexMap = _buildMap;
   }
 
-  void _positionsChanged() {
-    Iterable<ItemPosition> positions =
-        _itemPositionsListener.itemPositions.value;
-
-    SectionViewData? currentTopItem;
-    List<ItemPosition> updatedPosition = [];
-    if (positions.isNotEmpty) {
-      List<ItemPosition> newPositions = positions
-          .where((ItemPosition position) => position.itemTrailingEdge > 0)
-          .toList();
-      newPositions.sort((a, b) =>
-          ((a.itemTrailingEdge - b.itemTrailingEdge) * 1000000).toInt());
-
-      if (newPositions.isNotEmpty) {
-        var firstPosition = newPositions.first;
-
-        int index = firstPosition.index;
-        var type = _listData[index].type;
-        if (type == SectionViewDataType.dataHeader ||
-            type == SectionViewDataType.dataItem) {
-          currentTopItem = _listData[index];
-        }
-      }
-      updatedPosition = newPositions;
-    }
-
-    if (sectionViewAlphabetListKey.currentState != null) {
+  _stickyHeaderChanged() {
+    var stickyIndex = _controller.sliverController.stickyIndex.value;
+    if (stickyIndex != null) {
+      var currentTopItem = _listData[stickyIndex];
       sectionViewAlphabetListKey.currentState!.topItem = currentTopItem;
+    } else {
+      sectionViewAlphabetListKey.currentState!.topItem = null;
     }
-    if (stickyKey.currentState != null) {
-      stickyKey.currentState!.updateItemPositions(updatedPosition);
+  }
+
+  _fetchStickHeader() async {
+    await Future.delayed(const Duration(milliseconds: 50));
+    var stickyIndex = _controller.sliverController.stickyIndex.value;
+    if (stickyIndex != null) {
+      var currentTopItem = _listData[stickyIndex];
+      sectionViewAlphabetListKey.currentState!.topItem = currentTopItem;
+    } else {
+      sectionViewAlphabetListKey.currentState!.topItem = null;
     }
   }
 
   @override
   void initState() {
-    _itemPositionsListener.itemPositions.addListener(_positionsChanged);
+    _controller.sliverController.stickyIndex.addListener(_stickyHeaderChanged);
     _buildList();
+    _fetchStickHeader();
     super.initState();
   }
 
@@ -175,7 +128,7 @@ class _SectionViewState<T, N> extends State<SectionView> {
 
   @override
   void dispose() {
-    _itemPositionsListener.itemPositions.removeListener(_positionsChanged);
+    _controller.dispose();
     super.dispose();
   }
 
@@ -190,73 +143,42 @@ class _SectionViewState<T, N> extends State<SectionView> {
     return physics is BouncingScrollPhysics;
   }
 
-  Widget _determineRefereshControl(bool isRefreshing,
-      SectionViewOnRefresh onRefresh, bool isBouncePhysic, Widget? child) {
-    if (ownWidget.refreshBuilder != null) {
-      return ownWidget.refreshBuilder!(
-          isRefreshing, onRefresh, isBouncePhysic, child);
-    } else {
-      if (isBouncePhysic) {
-        return SectionViewBouncingScrollRefresh(
-          isRefreshing: _isRefreshing,
-          onRefresh: _onRefresh,
-        );
-      } else {
-        return RefreshIndicator(
-            onRefresh: _onRefresh, child: child ?? Container());
-      }
-    }
-  }
-
-  Widget _renderRefereshControl(bool isBouncePhysic) {
-    if (isBouncePhysic) {
-      if (ownWidget.onRefresh != null) {
-        return _determineRefereshControl(
-            _isRefreshing, _onRefresh, isBouncePhysic, null);
-      }
-    }
-    return Container();
-  }
-
   Widget _renderList(bool isBouncePhysic) {
-    return NotificationListener<ScrollNotification>(
-      onNotification: (notification) {
-        var metrics = notification.metrics;
+    Widget result = FlutterListView(
+        delegate: FlutterListViewDelegate(
+            (BuildContext context, int index) {
+              SectionViewData itemData = _listData[index];
+              switch (itemData.type) {
+                case SectionViewDataType.dataHeader:
+                  return ownWidget.headerBuilder(
+                      context, itemData.headerData, itemData.headerIndex);
+                case SectionViewDataType.dataItem:
+                  return ownWidget.itemBuilder(
+                      context,
+                      itemData.itemData,
+                      itemData.itemIndex!,
+                      itemData.headerData,
+                      itemData.headerIndex);
+              }
+            },
+            childCount: _listData.length,
+            onItemSticky: (index) {
+              if (ownWidget.enableSticky) {
+                final data = _listData[index];
+                if (data.type == SectionViewDataType.dataHeader) {
+                  return true;
+                }
+              }
 
-        if (stickyKey.currentState != null) {
-          stickyKey.currentState!.updateScrollPixed(
-              metrics.pixels <= metrics.minScrollExtent,
-              metrics.viewportDimension);
-        }
+              return false;
+            }),
+        controller: _controller);
 
-        return false;
-      },
-      child: ScrollablePositionedList.builder(
-        physics: ownWidget.physics,
-        itemCount: _listData.length,
-        itemBuilder: (context, index) {
-          SectionViewData itemData = _listData[index];
-          switch (itemData.type) {
-            case SectionViewDataType.dataHeader:
-              return ownWidget.headerBuilder(
-                  context, itemData.headerData, itemData.headerIndex);
-            case SectionViewDataType.dataItem:
-              return ownWidget.itemBuilder(
-                  context,
-                  itemData.itemData,
-                  itemData.itemIndex!,
-                  itemData.headerData,
-                  itemData.headerIndex);
-            case SectionViewDataType.refresh:
-              return _renderRefereshControl(isBouncePhysic);
-            case SectionViewDataType.loading:
-              return Container();
-          }
-        },
-        itemScrollController: _itemScrollController,
-        itemPositionsListener: _itemPositionsListener,
-      ),
-    );
+    if (ownWidget.refreshBuilder != null) {
+      result = ownWidget.refreshBuilder!(result);
+    }
+
+    return result;
   }
 
   @override
@@ -266,13 +188,6 @@ class _SectionViewState<T, N> extends State<SectionView> {
     Widget content = Stack(
       children: [
         _renderList(isBouncePhysic),
-        ownWidget.enableSticky
-            ? SectionViewSticky<T>(
-                listData: _listData,
-                headerBuilder: ownWidget.headerBuilder,
-                key: stickyKey,
-              )
-            : Container(),
         SectionViewAlphabetList<T>(
           alphabetBuilder: ownWidget.alphabetBuilder,
           headerToIndexMap: _headerToIndexMap,
@@ -283,7 +198,7 @@ class _SectionViewState<T, N> extends State<SectionView> {
             if (alphabetTipKey.currentState != null) {
               alphabetTipKey.currentState!.tipData = item.headerData;
             }
-            _itemScrollController.jumpTo(index: item.mapIndex);
+            _controller.sliverController.jumpToIndex(item.mapIndex);
           },
         ),
         SectionViewTip(
@@ -292,10 +207,6 @@ class _SectionViewState<T, N> extends State<SectionView> {
         )
       ],
     );
-
-    if (!isBouncePhysic) {
-      content = RefreshIndicator(onRefresh: _onRefresh, child: content);
-    }
 
     return content;
   }

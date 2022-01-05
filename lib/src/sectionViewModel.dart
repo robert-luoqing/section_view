@@ -22,8 +22,7 @@ typedef SectionViewOnRefresh = Future Function();
 
 typedef SectionViewRefreshWidgetBuilder = Widget Function(double offset);
 
-typedef SectionViewRefreshBuilder = Widget Function(bool isRefreshing,
-    SectionViewOnRefresh onRefresh, bool isBouncePhysic, Widget? child);
+typedef SectionViewRefreshBuilder = Widget Function(Widget? child);
 
 typedef AlphabetItemOnTap<T> = void Function<T>(AlphabetModel<T> item);
 
@@ -58,7 +57,7 @@ class AlphabetModel<T> {
   int headerIndex;
 }
 
-enum SectionViewDataType { dataHeader, dataItem, refresh, loading }
+enum SectionViewDataType { dataHeader, dataItem }
 
 class SectionViewData {
   SectionViewData(

@@ -1,4 +1,6 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:section_view/section_view.dart';
 import 'package:section_view_sample/countryModel.dart';
 import 'dataUtil.dart';
@@ -11,6 +13,7 @@ class FullSectionList extends StatefulWidget {
 }
 
 class _FullSectionListState extends State<FullSectionList> {
+  final _refreshController = RefreshController(initialRefresh: false);
   List<AlphabetHeader<CountryModel>> _countries = [];
 
   _loadCountry() async {
@@ -22,7 +25,8 @@ class _FullSectionListState extends State<FullSectionList> {
   }
 
   Future _onRefresh() async {
-    await Future.delayed(const Duration(seconds: 3));
+    await Future.delayed(const Duration(seconds: 2));
+    _refreshController.refreshCompleted();
   }
 
   @override
@@ -45,20 +49,35 @@ class _FullSectionListState extends State<FullSectionList> {
                 enableSticky: true,
                 alphabetAlign: Alignment.center,
                 alphabetInset: const EdgeInsets.all(4.0),
-                onRefresh: _onRefresh,
-                refreshBuilder:
-                    (isRefreshing, onRefresh, isBouncePhysic, child) {
-                  if (isBouncePhysic) {
-                    return SectionViewBouncingScrollRefresh(
-                        isRefreshing: isRefreshing,
-                        onRefresh: onRefresh,
-                        refreshingText: "Refresh....",
-                        pullToRefreshText: "Pull to refresh",
-                        releaseToRefreshText: "Release to refresh");
-                  } else {
-                    return RefreshIndicator(
-                        onRefresh: onRefresh, child: child ?? Container());
-                  }
+                refreshBuilder: (child) {
+                  return SmartRefresher(
+                      enablePullDown: true,
+                      enablePullUp: false,
+                      header: const WaterDropHeader(),
+                      footer: CustomFooter(
+                        builder: (context, mode) {
+                          Widget body;
+                          if (mode == LoadStatus.idle) {
+                            body = const Text("pull up load");
+                          } else if (mode == LoadStatus.loading) {
+                            body = const CupertinoActivityIndicator();
+                          } else if (mode == LoadStatus.failed) {
+                            body = const Text("Load Failed!Click retry!");
+                          } else if (mode == LoadStatus.canLoading) {
+                            body = const Text("release to load more");
+                          } else {
+                            body = const Text("No more Data");
+                          }
+                          return SizedBox(
+                            height: 55.0,
+                            child: Center(child: body),
+                          );
+                        },
+                      ),
+                      controller: _refreshController,
+                      onRefresh: _onRefresh,
+                      // onLoading: _onLoading,
+                      child: child);
                 },
                 headerBuilder: (context, headerData, headerIndex) {
                   return Container(
