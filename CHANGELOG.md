@@ -4,3 +4,6 @@
 
 ## 2.0.2
 * Update flutter_list_view version
+
+## 2.0.3
+* Update flutter_list_view version

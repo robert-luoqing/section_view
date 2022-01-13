@@ -12,7 +12,7 @@ and the Flutter guide for
 -->
 
 Notice: 2.0.0 has break changing
-- Break change, remove scrollable_positioned_list, add flutter_list_view
+- The header sticky will use flutter_list_view to implement
 - Refresh control will construct by user, like pull_to_refresh
 
 ```dart
