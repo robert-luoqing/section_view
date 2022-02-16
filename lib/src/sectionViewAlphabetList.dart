@@ -51,19 +51,21 @@ class SectionViewAlphabetListState<T> extends State<SectionViewAlphabetList> {
 
   void onDrag(double yPosition) {
     double checkedHeight = 0;
-    int index = 0;
+    int? index;
 
     // To determine which widget is selected add the height of every alphabet item one by one
     // Until the height is in range of the drag position
     // At that point we have determined the index of the header item and trigger the callback with that item
-    while(checkedHeight < yPosition && index < ownWidget.headerToIndexMap.length) {
-      double itemHeight = itemKeys[index].currentContext?.size?.height ?? 0;
+    for (var i = 0; i < ownWidget.headerToIndexMap.length; i++) {
+      double itemHeight = itemKeys[i].currentContext?.size?.height ?? 0;
       checkedHeight += itemHeight;
-      index += 1;
+      if (checkedHeight >= yPosition) {
+        index = i;
+        break;
+      }
     }
 
-    index = max(index - 1, 0);
-    if (index < ownWidget.headerToIndexMap.length && index >= 0) {
+    if (index != null) {
       ownWidget.onSelect(ownWidget.headerToIndexMap[index]);
     }
   }
