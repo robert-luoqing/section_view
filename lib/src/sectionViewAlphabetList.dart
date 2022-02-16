@@ -1,10 +1,11 @@
+import 'dart:math';
 import 'sectionViewModel.dart';
 import 'package:flutter/material.dart';
 
 class SectionViewAlphabetList<T> extends StatefulWidget {
   const SectionViewAlphabetList(
       {required this.headerToIndexMap,
-      required this.onTap,
+      required this.onSelect,
       required this.alphabetAlign,
       required this.alphabetInset,
       this.alphabetBuilder,
@@ -12,7 +13,7 @@ class SectionViewAlphabetList<T> extends StatefulWidget {
       : super(key: key);
   final SectionViewAlphabetBuilder<T>? alphabetBuilder;
   final List<AlphabetModel<T>> headerToIndexMap;
-  final AlphabetItemOnTap<AlphabetModel<T>> onTap;
+  final AlphabetItemOnTap<AlphabetModel<T>> onSelect;
   final Alignment alphabetAlign;
   final EdgeInsets alphabetInset;
 
@@ -22,6 +23,8 @@ class SectionViewAlphabetList<T> extends StatefulWidget {
 }
 
 class SectionViewAlphabetListState<T> extends State<SectionViewAlphabetList> {
+  final List<GlobalKey> itemKeys = [];
+
   /// It is top item on viewport, the headerData can be used to tracking
   /// current alphabet
   SectionViewData? _topItem;
@@ -46,8 +49,28 @@ class SectionViewAlphabetListState<T> extends State<SectionViewAlphabetList> {
     }
   }
 
+  void onDrag(double yPosition) {
+    double checkedHeight = 0;
+    int index = 0;
+
+    // To determine which widget is selected add the height of every alphabet item one by one
+    // Until the height is in range of the drag position
+    // At that point we have determined the index of the header item and trigger the callback with that item
+    while(checkedHeight < yPosition && index < ownWidget.headerToIndexMap.length) {
+      double itemHeight = itemKeys[index].currentContext?.size?.height ?? 0;
+      checkedHeight += itemHeight;
+      index += 1;
+    }
+
+    index = max(index - 1, 0);
+    if (index < ownWidget.headerToIndexMap.length && index >= 0) {
+      ownWidget.onSelect(ownWidget.headerToIndexMap[index]);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    itemKeys.clear();
     if (ownWidget.alphabetBuilder == null) {
       return const SizedBox(
         width: 0,
@@ -56,17 +79,20 @@ class SectionViewAlphabetListState<T> extends State<SectionViewAlphabetList> {
     } else {
       List<Widget> alphabetWidgets = [];
       for (var header in ownWidget.headerToIndexMap) {
+        final globalKey = GlobalKey();
         var _alphabetWidget = ownWidget.alphabetBuilder!(
             context,
             header.headerData,
             header.headerIndex == _topItem?.headerIndex,
             header.headerIndex);
         alphabetWidgets.add(GestureDetector(
+            key: globalKey,
             onTap: () {
-              ownWidget.onTap(header);
+              ownWidget.onSelect(header);
             },
             behavior: HitTestBehavior.opaque,
             child: _alphabetWidget));
+        itemKeys.add(globalKey);
       }
       return Positioned(
           top: 0,
@@ -76,10 +102,14 @@ class SectionViewAlphabetListState<T> extends State<SectionViewAlphabetList> {
             alignment: ownWidget.alphabetAlign,
             child: Padding(
               padding: ownWidget.alphabetInset,
-              child: (Column(
-                mainAxisSize: MainAxisSize.min,
-                children: alphabetWidgets,
-              )),
+              child: GestureDetector(
+                onVerticalDragDown: (details) => onDrag(details.localPosition.dy),
+                onVerticalDragUpdate: (details) => onDrag(details.localPosition.dy),
+                child: (Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: alphabetWidgets,
+                )),
+              ),
             ),
           ));
     }
