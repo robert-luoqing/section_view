@@ -7,3 +7,6 @@
 
 ## 2.0.3
 * Update flutter_list_view version
+
+## 2.0.4
+* Support drag alphabet to enhance user experience (Thanks LMoesman's PR)
