@@ -194,7 +194,7 @@ class _SectionViewState<T, N> extends State<SectionView> {
           alphabetAlign: ownWidget.alphabetAlign,
           alphabetInset: ownWidget.alphabetInset,
           key: sectionViewAlphabetListKey,
-          onTap: <T>(item) {
+          onSelect: <T>(item) {
             if (alphabetTipKey.currentState != null) {
               alphabetTipKey.currentState!.tipData = item.headerData;
             }
