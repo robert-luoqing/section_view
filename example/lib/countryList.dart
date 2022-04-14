@@ -36,6 +36,7 @@ class _CountryListState extends State<CountryList> {
             Expanded(
               flex: 1,
               child: SectionView<AlphabetHeader<CountryModel>, CountryModel>(
+                physics: ClampingScrollPhysics(),
                 source: _countries,
                 onFetchListData: (header) => header.items,
                 headerBuilder: getDefaultHeaderBuilder((d) => d.alphabet),

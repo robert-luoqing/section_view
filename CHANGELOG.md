@@ -10,3 +10,6 @@
 
 ## 2.0.4
 * Support drag alphabet to enhance user experience (Thanks LMoesman's PR)
+
+## 2.0.5
+* Fixed physics and scrollBehavior

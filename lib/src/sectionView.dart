@@ -17,6 +17,7 @@ class SectionView<T, N> extends StatefulWidget {
       this.alphabetBuilder,
       this.tipBuilder,
       this.physics,
+      this.scrollBehavior,
       Key? key})
       : super(key: key);
 
@@ -30,7 +31,10 @@ class SectionView<T, N> extends StatefulWidget {
   final bool enableSticky;
   final Alignment alphabetAlign;
   final EdgeInsets alphabetInset;
+
+  /// Inherit from scrollview
   final ScrollPhysics? physics;
+  final ScrollBehavior? scrollBehavior;
 
   @override
   _SectionViewState<T, N> createState() => _SectionViewState<T, N>();
@@ -132,19 +136,21 @@ class _SectionViewState<T, N> extends State<SectionView> {
     super.dispose();
   }
 
-  bool _getPhysicsIsBounce() {
-    late ScrollPhysics physics;
-    if (ownWidget.physics != null) {
-      physics = ownWidget.physics!;
-    } else {
-      var sc = ScrollConfiguration.of(context);
-      physics = sc.getScrollPhysics(context);
-    }
-    return physics is BouncingScrollPhysics;
-  }
+  // bool _getPhysicsIsBounce() {
+  //   late ScrollPhysics physics;
+  //   if (ownWidget.physics != null) {
+  //     physics = ownWidget.physics!;
+  //   } else {
+  //     var sc = ScrollConfiguration.of(context);
+  //     physics = sc.getScrollPhysics(context);
+  //   }
+  //   return physics is BouncingScrollPhysics;
+  // }
 
-  Widget _renderList(bool isBouncePhysic) {
+  Widget _renderList() {
     Widget result = FlutterListView(
+        physics: ownWidget.physics,
+        scrollBehavior: ownWidget.scrollBehavior,
         delegate: FlutterListViewDelegate(
             (BuildContext context, int index) {
               SectionViewData itemData = _listData[index];
@@ -183,11 +189,9 @@ class _SectionViewState<T, N> extends State<SectionView> {
 
   @override
   Widget build(BuildContext context) {
-    var isBouncePhysic = _getPhysicsIsBounce();
-
     Widget content = Stack(
       children: [
-        _renderList(isBouncePhysic),
+        _renderList(),
         SectionViewAlphabetList<T>(
           alphabetBuilder: ownWidget.alphabetBuilder,
           headerToIndexMap: _headerToIndexMap,
