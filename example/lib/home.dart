@@ -40,6 +40,11 @@ class _HomePageState extends State<HomePage> {
                   Navigator.of(context).pushNamed("/FullSectionList");
                 },
                 child: const Text("Full Section List")),
+                 ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pushNamed("/sectionControllerView");
+                },
+                child: const Text("Country List with controller")),
           ],
         ),
       ),

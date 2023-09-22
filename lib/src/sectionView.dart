@@ -18,6 +18,7 @@ class SectionView<T, N> extends StatefulWidget {
       this.tipBuilder,
       this.physics,
       this.scrollBehavior,
+      this.controller,
       Key? key})
       : super(key: key);
 
@@ -36,12 +37,14 @@ class SectionView<T, N> extends StatefulWidget {
   final ScrollPhysics? physics;
   final ScrollBehavior? scrollBehavior;
 
+  final FlutterListViewController? controller;
+
   @override
   _SectionViewState<T, N> createState() => _SectionViewState<T, N>();
 }
 
 class _SectionViewState<T, N> extends State<SectionView> {
-  final FlutterListViewController _controller = FlutterListViewController();
+  FlutterListViewController? _controller;
 
   /// listData will used to bind [ScrollablePositionedList]
   List<SectionViewData> _listData = [];
@@ -96,7 +99,7 @@ class _SectionViewState<T, N> extends State<SectionView> {
   }
 
   _stickyHeaderChanged() {
-    var stickyIndex = _controller.sliverController.stickyIndex.value;
+    var stickyIndex = _controller?.sliverController.stickyIndex.value;
     if (stickyIndex != null) {
       var currentTopItem = _listData[stickyIndex];
       sectionViewAlphabetListKey.currentState!.topItem = currentTopItem;
@@ -107,7 +110,7 @@ class _SectionViewState<T, N> extends State<SectionView> {
 
   _fetchStickHeader() async {
     await Future.delayed(const Duration(milliseconds: 50));
-    var stickyIndex = _controller.sliverController.stickyIndex.value;
+    var stickyIndex = _controller?.sliverController.stickyIndex.value;
     if (stickyIndex != null) {
       var currentTopItem = _listData[stickyIndex];
       sectionViewAlphabetListKey.currentState!.topItem = currentTopItem;
@@ -118,7 +121,12 @@ class _SectionViewState<T, N> extends State<SectionView> {
 
   @override
   void initState() {
-    _controller.sliverController.stickyIndex.addListener(_stickyHeaderChanged);
+    if (widget.controller != null) {
+      this._controller = widget.controller;
+    } else {
+      this._controller = FlutterListViewController();
+    }
+    _controller?.sliverController.stickyIndex.addListener(_stickyHeaderChanged);
     _buildList();
     _fetchStickHeader();
     super.initState();
@@ -126,13 +134,22 @@ class _SectionViewState<T, N> extends State<SectionView> {
 
   @override
   void didUpdateWidget(covariant SectionView oldWidget) {
+    if (widget.controller != oldWidget.controller) {
+      var oldController = _controller;
+      if (widget.controller == null) {
+        _controller = FlutterListViewController();
+      } else {
+        _controller = widget.controller;
+      }
+      oldController?.dispose();
+    }
     _buildList();
     super.didUpdateWidget(oldWidget);
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _controller?.dispose();
     super.dispose();
   }
 
@@ -202,7 +219,7 @@ class _SectionViewState<T, N> extends State<SectionView> {
             if (alphabetTipKey.currentState != null) {
               alphabetTipKey.currentState!.tipData = item.headerData;
             }
-            _controller.sliverController.jumpToIndex(item.mapIndex);
+            _controller?.sliverController.jumpToIndex(item.mapIndex);
           },
         ),
         SectionViewTip(

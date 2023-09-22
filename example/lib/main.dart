@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-
-import 'home.dart';
 import 'route.dart';
 
 void main() {

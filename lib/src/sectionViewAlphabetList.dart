@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'sectionViewModel.dart';
 import 'package:flutter/material.dart';
 
@@ -39,8 +38,8 @@ class SectionViewAlphabetListState<T> extends State<SectionViewAlphabetList> {
         setState(() {
           _topItem = val;
         });
-      } catch (e, s) {
-        WidgetsBinding.instance?.addPostFrameCallback((_) {
+      } catch (e, _) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
           setState(() {
             _topItem = val;
           });
@@ -105,8 +104,10 @@ class SectionViewAlphabetListState<T> extends State<SectionViewAlphabetList> {
             child: Padding(
               padding: ownWidget.alphabetInset,
               child: GestureDetector(
-                onVerticalDragDown: (details) => onDrag(details.localPosition.dy),
-                onVerticalDragUpdate: (details) => onDrag(details.localPosition.dy),
+                onVerticalDragDown: (details) =>
+                    onDrag(details.localPosition.dy),
+                onVerticalDragUpdate: (details) =>
+                    onDrag(details.localPosition.dy),
                 child: (Column(
                   mainAxisSize: MainAxisSize.min,
                   children: alphabetWidgets,

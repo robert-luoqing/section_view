@@ -13,3 +13,6 @@
 
 ## 2.0.5
 * Fixed physics and scrollBehavior
+
+## 2.0.6
+* Expose controller of section view

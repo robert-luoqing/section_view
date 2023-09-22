@@ -5,13 +5,14 @@ import 'home.dart';
 
 import 'package:flutter/widgets.dart';
 
+import 'sectionControllerView.dart';
 import 'simpleSectionList.dart';
 
 class SectionViewRoute {
   static const String initialRoute = "/";
   static final Map<String, WidgetBuilder> routes = {
-    "/": (context) => Stack(
-          children: const [
+    "/": (context) => const Stack(
+          children: [
             HomePage(
               title: "Home",
             ),
@@ -21,5 +22,6 @@ class SectionViewRoute {
     "/CountryListWithSearch": (context) => const CountryListWithSearch(),
     "/FullSectionList": (context) => const FullSectionList(),
     "/SimpleSectionList": (context) => const SimpleSectionList(),
+    "/sectionControllerView": (context) => const SectionControllerView(),
   };
 }
